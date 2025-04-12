@@ -29,11 +29,10 @@ type DnsConfig struct {
 
 func (c *DnsCfg) GetDnsConfig() (*DnsConfig, error) {
 	url := c.url + "/control/dns_info"
-
-	contentType := "application/json"
+	mimeTypeJson := "application/json"
 
 	tr := &http.Transport{
-		IdleConnTimeout: 5 * time.Second,
+		IdleConnTimeout: time.Second * 5,
 	}
 	client := &http.Client{
 		Transport: tr,
@@ -42,19 +41,19 @@ func (c *DnsCfg) GetDnsConfig() (*DnsConfig, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Got error %s", err.Error())
+		return nil, fmt.Errorf("failed to create request: %s", err.Error())
 	}
-	req.Header.Add("Content-Type", contentType)
+	req.Header.Add("Accept", mimeTypeJson)
 	req.SetBasicAuth(c.username, c.password)
 
 	response, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Got error %s", err.Error())
+		return nil, fmt.Errorf("failed to execute request: %s", err.Error())
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("Please contact an administrator if the problem persists (method: GetDnsConfig, status code: %d)", response.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d. Please contact an administrator if the problem persists", response.StatusCode)
 	}
 
 	respBody, err := io.ReadAll(response.Body)
@@ -62,19 +61,17 @@ func (c *DnsCfg) GetDnsConfig() (*DnsConfig, error) {
 		return nil, err
 	}
 
-	data := new(DnsConfig)
-
-	if err := json.Unmarshal(respBody, data); err != nil {
+	var data DnsConfig
+	if err := json.Unmarshal(respBody, &data); err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	return &data, nil
 }
 
 func (c *DnsCfg) SaveDnsConfig(payload *DnsConfig) error {
 	url := c.url + "/control/dns_config"
-
-	contentType := "application/json"
+	mimeTypeJson := "application/json"
 
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -82,7 +79,7 @@ func (c *DnsCfg) SaveDnsConfig(payload *DnsConfig) error {
 	}
 
 	tr := &http.Transport{
-		IdleConnTimeout: 5 * time.Second,
+		IdleConnTimeout: time.Second * 5,
 	}
 	client := &http.Client{
 		Transport: tr,
@@ -91,19 +88,19 @@ func (c *DnsCfg) SaveDnsConfig(payload *DnsConfig) error {
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
-		return fmt.Errorf("Got error %s", err.Error())
+		return fmt.Errorf("failed to create request: %s", err.Error())
 	}
-	req.Header.Add("Content-Type", contentType)
+	req.Header.Add("Content-Type", mimeTypeJson)
 	req.SetBasicAuth(c.username, c.password)
 
 	response, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Got error %s", err.Error())
+		return fmt.Errorf("failed to execute request: %s", err.Error())
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return fmt.Errorf("Please contact an administrator if the problem persists (method: SaveDnsConfig, status code: %d)", response.StatusCode)
+		return fmt.Errorf("unexpected status code: %d. Please contact an administrator if the problem persists", response.StatusCode)
 	}
 
 	return nil

@@ -14,15 +14,12 @@ type Record struct {
 	Answer string `json:"answer"`
 }
 
-type Records []Record
-
-func (c *DnsCfg) RewriteList() (*Records, error) {
+func (c *DnsCfg) RewriteList() ([]Record, error) {
 	url := c.url + "/control/rewrite/list"
-
 	mimeTypeJson := "application/json"
 
 	tr := &http.Transport{
-		IdleConnTimeout: 5 * time.Second,
+		IdleConnTimeout: time.Second * 5,
 	}
 	client := &http.Client{
 		Transport: tr,
@@ -31,39 +28,36 @@ func (c *DnsCfg) RewriteList() (*Records, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Got error %s", err.Error())
+		return nil, fmt.Errorf("failed to create request: %s", err.Error())
 	}
-	req.Header.Add("Content-Type", mimeTypeJson)
 	req.Header.Add("Accept", mimeTypeJson)
 	req.SetBasicAuth(c.username, c.password)
 
 	response, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Got error %s", err.Error())
+		return nil, fmt.Errorf("failed to execute request: %s", err.Error())
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("Please contact an administrator if the problem persists (method: GetDnsConfig, status code: %d)", response.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d. Please contact an administrator if the problem persists", response.StatusCode)
 	}
 
 	respBody, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read response body: %s", err.Error())
 	}
 
-	data := new(Records)
-
-	if err := json.Unmarshal(respBody, data); err != nil {
-		return nil, err
+	var records []Record
+	if err := json.Unmarshal(respBody, &records); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %s", err.Error())
 	}
 
-	return data, nil
+	return records, nil
 }
 
 func (c *DnsCfg) RewriteAdd(payload *Record) error {
 	url := c.url + "/control/rewrite/add"
-
 	mimeTypeJson := "application/json"
 
 	data, err := json.Marshal(payload)
@@ -72,7 +66,7 @@ func (c *DnsCfg) RewriteAdd(payload *Record) error {
 	}
 
 	tr := &http.Transport{
-		IdleConnTimeout: 5 * time.Second,
+		IdleConnTimeout: time.Second * 5,
 	}
 	client := &http.Client{
 		Transport: tr,
@@ -81,20 +75,19 @@ func (c *DnsCfg) RewriteAdd(payload *Record) error {
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
-		return fmt.Errorf("Got error %s", err.Error())
+		return fmt.Errorf("failed to create request: %s", err.Error())
 	}
 	req.Header.Add("Content-Type", mimeTypeJson)
-	req.Header.Add("Accept", mimeTypeJson)
 	req.SetBasicAuth(c.username, c.password)
 
 	response, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Got error %s", err.Error())
+		return fmt.Errorf("failed to execute request: %s", err.Error())
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return fmt.Errorf("Please contact an administrator if the problem persists (method: SaveDnsConfig, status code: %d)", response.StatusCode)
+		return fmt.Errorf("unexpected status code: %d. Please contact an administrator if the problem persists", response.StatusCode)
 	}
 
 	return nil
@@ -102,7 +95,6 @@ func (c *DnsCfg) RewriteAdd(payload *Record) error {
 
 func (c *DnsCfg) RewriteDelete(payload *Record) error {
 	url := c.url + "/control/rewrite/delete"
-
 	mimeTypeJson := "application/json"
 
 	data, err := json.Marshal(payload)
@@ -111,7 +103,7 @@ func (c *DnsCfg) RewriteDelete(payload *Record) error {
 	}
 
 	tr := &http.Transport{
-		IdleConnTimeout: 5 * time.Second,
+		IdleConnTimeout: time.Second * 5,
 	}
 	client := &http.Client{
 		Transport: tr,
@@ -120,20 +112,19 @@ func (c *DnsCfg) RewriteDelete(payload *Record) error {
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
-		return fmt.Errorf("Got error %s", err.Error())
+		return fmt.Errorf("failed to create request: %s", err.Error())
 	}
 	req.Header.Add("Content-Type", mimeTypeJson)
-	req.Header.Add("Accept", mimeTypeJson)
 	req.SetBasicAuth(c.username, c.password)
 
 	response, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Got error %s", err.Error())
+		return fmt.Errorf("failed to execute request: %s", err.Error())
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return fmt.Errorf("Please contact an administrator if the problem persists (method: SaveDnsConfig, status code: %d)", response.StatusCode)
+		return fmt.Errorf("unexpected status code: %d. Please contact an administrator if the problem persists", response.StatusCode)
 	}
 
 	return nil
