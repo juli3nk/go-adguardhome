@@ -13,7 +13,7 @@ type Status struct {
 	Language                   string   `json:"answer"`
 	DnsAddresses               []string `json:"dns_addresses"`
 	DnsPort                    int      `json:"dns_port"`
-	HttpPort                   string   `json:"http_port"`
+	HttpPort                   int      `json:"http_port"`
 	ProtectionDisabledDuration int      `json:"protection_disabled_duration"`
 	ProtectionEnabled          bool     `json:"protection_enabled"`
 	DhcpAvailable              bool     `json:"dhcp_available"`
